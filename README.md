@@ -376,10 +376,10 @@ Check out the [github repo](https://github.com/dxdisrupt/rocket) for the rocket 
 
 Its really easy to do this to tell the Spark when to fire.
 
-First we need to install something to make REST request from the server. Let's use `unrest` a great client library that makes API calls a breeze.
+First we need to install something to make REST request from the server. Let's use `unirest` a great client library that makes API calls a breeze.
 
 ```
-npm install unrest --save
+npm install unirest --save
 ```
 
  make a function `fireRocket` in `Server.js`, which makes a call to the [Spark.io Cloud]
