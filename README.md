@@ -303,11 +303,21 @@ Now add the `var twit = require('twit')` to your `Start/server.js` file, and ini
 
 ```js
 var Twit = require('twit');
+/**
+Either put your keys directly in here (bad idea)
 var twitter = new Twit({
     consumer_key: "<Consumer Key>",
     consumer_secret: "<Consumer Secret>",
     access_token: "<Access Token>",
     access_token_secret: "<Access Token Secrete>"
+});
+**/
+//place these keys in the following env variables (good idea)
+var twitter = new Twit({
+    consumer_key: process.env.TwitterConsumerKey,
+    consumer_secret: process.env.TwitterConsumerSecret,
+    access_token: process.env.TwitterAccessToken,
+    access_token_secret: process.env.TwitterAccessTokenSecret
 });
 ```
 
