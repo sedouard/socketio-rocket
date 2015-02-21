@@ -11,7 +11,8 @@
     "express": "~3.4.6",
     "express-device": "~0.3.7",
     "socket.io": "~0.9.16",
-    "twit": "^1.1.20"
+    "twit": "^1.1.20",
+    "unirest": "^0.4.0"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

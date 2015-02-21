@@ -10,12 +10,13 @@ var app = express();
 var server = require('http').createServer(app)
 var io = require('socket.io').listen(server);
 var device  = require('express-device');
+var unirest = require('unirest');
 var Twit = require('twit');
 var twitter = new Twit({
-    consumer_key: "<Consumer Key>",//process.env.TwitterConsumerKey,
-    consumer_secret: "<Consumer Secret>",//process.env.TwitterConsumerSecret,
-    access_token: "<Access Token>",//process.env.TwitterAccessToken,
-    access_token_secret: "<Access Token Secret>"//process.env.TwitterAccessTokenSecret
+    consumer_key: process.env.TwitterConsumerKey,
+    consumer_secret: process.env.TwitterConsumerSecret,
+    access_token: process.env.TwitterAccessToken,
+    access_token_secret: process.env.TwitterAccessTokenSecret
 });
 
 var runningPortNumber = process.env.PORT;
@@ -58,21 +59,56 @@ io.sockets.on('connection', function (socket) {
     socket.on('register', function(data){
     	var stream = twitter.stream('statuses/filter', { track: "#" + data.track });
     	var count = 0;
+    	var goal = data.goal;
 	    stream.on('tweet', function (tweet) {
 	    	count++;
 	        socket.emit('blast', {msg:"<span style=\"color:red !important\">" + tweet.text + "!</span>", count: count});
+	        if(count >= goal){
+	        	//stop the stream
+	        	console.log('GOAL REACHED! TODO - Fire Rocket!');
+	        	stream.stop();
+	        	fireRocket(function(err){
+		    		if(err){
+		    			return console.error(err);
+		    		}
+
+		    		return console.log('Rocket Fired!!');
+	    		});
+	        }
 	    });
 
 	    //stop tracking tweets after disconnecting
 	    socket.on('disconnect', function(socket){
 	    	console.log("!!!!CLIENT DISCONNECTED!!!");
-			stream.stop();
+	    	stream.stop();
+
+			
 		});
     });
 
     
 });
 
+function fireRocket(cb){
+
+	//TODO: NEVER place your actual spark core access_token in your file
+  unirest.post('https://api.spark.io/v1/devices/53ff6e066667574833512467/cycleRelay')
+  .send('access_token=a60207c84d396e58510aae5b91f5bbfb0dccb9a7')
+  .send('params=r1,1500')
+  .end(function(response){
+
+    if(response.error){
+      //something went wrong!
+      console.error(response.error);
+      cb(response.error);
+    }
+
+    //rocket triggered! (make sure its on and connected)
+    cb(null);
+  });
+
+
+}
 
 server.listen(runningPortNumber);
 
