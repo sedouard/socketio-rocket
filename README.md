@@ -299,7 +299,7 @@ npm install twit --save
 
 The `--save` will save the dependency in your package.json which will become useful when we deploy the application.
 
-Now add the `var twit = require('twit')` to your `Start/server.js` file, and initialize it with the keys found on your twitter app registration:
+Now add the `var Twit = require('twit')` to your `Start/server.js` file, and initialize it with the keys found on your twitter app registration:
 
 ```js
 var Twit = require('twit');
