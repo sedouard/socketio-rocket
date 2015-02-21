@@ -359,5 +359,183 @@ io.sockets.on('connection', function (socket) {
 
 The last portion of the snippet we've added simply tells the twitter stream to stop sending down tweets when the client disconnects from the web socket.
 
+## Triggering the Rocket to Fire
 
+We'll be using [this rocket](https://github.com/dxdisrupt/rocket) that we designed at [Tech Crunch Disrupt 2014](http://techcrunch.com/2014/09/07/meet-some-of-the-hackers-at-techcrunch-disrupt-sf/). It's based off of the [Spark Core](http://spark.io) chip which makes it super easy to send messages to the device.
+
+Check out the [github repo](https://github.com/dxdisrupt/rocket) for the rocket for more information on how we set it up. The TL;DR is that we have installed what is called a relay to a sprinkler valve. A javascript function lives on the spark which listens for a REST request which will tell it to turn on the relay which opens the sprinkler valve which  in-turn releases an air chamber, firing a paper rocket!
+
+Its really easy to do this to tell the Spark when to fire.
+
+First we need to install something to make REST request from the server. Let's use `unrest` a great client library that makes API calls a breeze.
+
+```
+npm install unrest --save
+```
+
+ make a function `fireRocket` in `Server.js`, which makes a call to the [Spark.io Cloud]
+(http://spark.io) to send a message to our Rocket's Microprocessor:
+
+```js
+function fireRocket(cb){
+
+	//TODO: NEVER place your actual spark core access_token in your file
+  unirest.post('https://api.spark.io/v1/devices/<Device ID>/cycleRelay')
+  .send('access_token=<Device Access Token>')
+  .send('params=r1,1500')
+  .end(function(response){
+
+    if(response.error){
+      //something went wrong!
+      console.error(response.error);
+      cb(response.error);
+    }
+
+    //rocket triggered! (make sure its on and connected)
+    cb(null);
+  });
+
+
+}
+
+```
+
+You can check the [unirest documentation](http://npmjs.org/packages/unirest), however the code above makes a POST api call to the Spark Cloud with form parameters `access_token=<Device Access Token>` and `r1=15000`. The `r1=1500` tells the cycleRelay function to turn the Relay `r1` on for 1.5 seconds, long enough for us to fire the rocket completely.
+
+Finally we need to hook up this function to our twitter tracker. All we need to do is add an if statement within our twitter stream event handler:
+
+```js
+if(count >= goal){
+	//stop the stream
+	console.log('GOAL REACHED! TODO - Fire Rocket!');
+	stream.stop();
+	fireRocket(function(err){
+		if(err){
+		    	return console.error(err);
+		}
+
+		return console.log('Rocket Fired!!');
+	    	});
+}
+```
+
+Finally, the entire `server.js` file looks like this:
+
+```js
+/*************************************
+//
+// socketio-rocket app
+//
+**************************************/
+
+// express magic
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app)
+var io = require('socket.io').listen(server);
+var device  = require('express-device');
+var unirest = require('unirest');
+var Twit = require('twit');
+var twitter = new Twit({
+    consumer_key: process.env.TwitterConsumerKey,
+    consumer_secret: process.env.TwitterConsumerSecret,
+    access_token: process.env.TwitterAccessToken,
+    access_token_secret: process.env.TwitterAccessTokenSecret
+});
+
+var runningPortNumber = process.env.PORT;
+
+
+app.configure(function(){
+	// I need to access everything in '/public' directly
+	app.use(express.static(__dirname + '/public'));
+
+	//set the view engine
+	app.set('view engine', 'ejs');
+	app.set('views', __dirname +'/views');
+
+	app.use(device.capture());
+});
+
+
+// logs every request
+app.use(function(req, res, next){
+	// output every request in the array
+	console.log({method:req.method, url: req.url, device: req.device});
+
+	// goes onto the next function in line
+	next();
+});
+
+app.get("/", function(req, res){
+	if(!req.query.track || !req.query.goal){
+		return res.send(400);
+	}
+	
+	res.render('index', {track: req.query.track, goal: req.query.goal});
+});
+
+
+io.sockets.on('connection', function (socket) {
+
+	
+	//register for track
+    socket.on('register', function(data){
+    	var stream = twitter.stream('statuses/filter', { track: "#" + data.track });
+    	var count = 0;
+    	var goal = data.goal;
+	    stream.on('tweet', function (tweet) {
+	    	count++;
+	        socket.emit('blast', {msg:"<span style=\"color:red !important\">" + tweet.text + "!</span>", count: count});
+	        if(count >= goal){
+	        	//stop the stream
+	        	console.log('GOAL REACHED! TODO - Fire Rocket!');
+	        	stream.stop();
+	        	fireRocket(function(err){
+		    		if(err){
+		    			return console.error(err);
+		    		}
+
+		    		return console.log('Rocket Fired!!');
+	    		});
+	        }
+	    });
+
+	    //stop tracking tweets after disconnecting
+	    socket.on('disconnect', function(socket){
+	    	console.log("!!!!CLIENT DISCONNECTED!!!");
+	    	stream.stop();
+
+			
+		});
+    });
+
+    
+});
+
+function fireRocket(cb){
+
+	//TODO: NEVER place your actual spark core access_token in your file
+  unirest.post('https://api.spark.io/v1/devices/53ff6e066667574833512467/cycleRelay')
+  .send('access_token=a60207c84d396e58510aae5b91f5bbfb0dccb9a7')
+  .send('params=r1,1500')
+  .end(function(response){
+
+    if(response.error){
+      //something went wrong!
+      console.error(response.error);
+      cb(response.error);
+    }
+
+    //rocket triggered! (make sure its on and connected)
+    cb(null);
+  });
+
+
+}
+
+server.listen(runningPortNumber);
+
+
+```
 
