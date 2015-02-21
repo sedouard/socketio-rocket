@@ -414,6 +414,7 @@ You can check the [unirest documentation](http://npmjs.org/packages/unirest), ho
 Finally we need to hook up this function to our twitter tracker. All we need to do is add an if statement within our twitter stream event handler:
 
 ```js
+var goal = data.goal;
 var fired = false;
 if(count >= goal && !fired){
 	//only attempt to launch once!
