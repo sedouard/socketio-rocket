@@ -5,7 +5,6 @@
 ## Objectives
 
 By the end of this walk-through you'll be able to:
-
 - Use [Yeoman](Yeoman.io) to create a socket.io application with [Express](http://expressjs.com) and [Bootstrap](http://getboostrap.com)
 - Create a 'Gauge' using the [Gage](http://gagejs.com)
 - Send Live Tweets and Count from Server to front-end
@@ -122,7 +121,7 @@ Let's make the application look a bit more like what we want it to be. We'll rep
 
 Change the file `Start/index.ejs` to reflect the changes in the container div:
 
-```ejs
+```html
 <div class="container">
     	<div class="jumbotron">
         	<h1>socketio-rocket</h1>
@@ -148,7 +147,7 @@ Let's add our gauge we'll use to determine how far we are from the goal amount o
 
 Find the file `justgage.1.0.1.min.js` and `justgage.1.0.1.min.js"` (the version numbers may change slightly in the future) and place it in `Start/public/js`. Now in your index.ejs, toward the bottom and above the import for `app.min.js` place a link to this file:
 
-```ejs
+```html
 
 <!-- socket.io -->
 <script src="/socket.io/socket.io.js"></script>
@@ -164,7 +163,7 @@ Find the file `justgage.1.0.1.min.js` and `justgage.1.0.1.min.js"` (the version 
 
 Now we need a div for our gauge to live in. Lets place it in a div with the class `row`  which will place it below the twitter feed. Within it we'll place the actual gauge in a div with `id="track-gauge"`. Your container div should know look like this:
 
-```ejs
+```html
 <div class="container">
     	<div class="jumbotron">
         	<h1>socketio-rocket</h1>
@@ -186,7 +185,7 @@ Now we need a div for our gauge to live in. Lets place it in a div with the clas
 
 Below your app code link let's add some in-line javascript. This code will use the JustGage library to initialize our gauge and draw it in the div. We're doing in-line js here because we'll be grabbing some *templating* data from the node server that the js code will use. Trust me this will make sense in the next section!
 
-```ejs
+```html
 <!-- socket.io -->
 <script src="/socket.io/socket.io.js"></script>
 
