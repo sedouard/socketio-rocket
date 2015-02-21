@@ -382,7 +382,15 @@ First we need to install something to make REST request from the server. Let's u
 npm install unirest --save
 ```
 
- make a function `fireRocket` in `Server.js`, which makes a call to the [Spark.io Cloud]
+Now add: 
+
+```js
+var unirest = require('unirest');
+```
+
+to top top of the `server.js`.
+
+Create a function `fireRocket` in `Server.js`, which makes a call to the [Spark.io Cloud]
 (http://spark.io) to send a message to our Rocket's Microprocessor:
 
 ```js
